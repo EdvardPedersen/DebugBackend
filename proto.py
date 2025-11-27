@@ -82,7 +82,7 @@ class DebugBackend:
             variables = [(x["name"], x["value"]) for x in event["body"]["variables"]]
             self.locals_handler(variables)
 
-        if("event" in event and event["event"] == "initialized" and self.executable):
+        if("command" in event and event["command"] == "initialize" and self.executable):
             self.initialized = True
             self.send_dap({"type": "request", "command":"launch", "arguments":{"nodebug": "false", "program": self.executable}})
             self.executable = None
