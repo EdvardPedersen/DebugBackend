@@ -36,6 +36,7 @@ class DebugBackend:
         self.reader = threading.Thread(target=DAP_Read, args=(self.debugger.stdout, self.stdout), daemon=True)
         self.reader.start()
         self.sequence = 1
+        self.initialized = False
         self.locals_handler = locals_handler
         self.running_line = select_running_line
         self.tid = 0
@@ -80,6 +81,12 @@ class DebugBackend:
         if("type" in event and event["type"] == "response" and event["command"] == "variables" and event["success"]):
             variables = [(x["name"], x["value"]) for x in event["body"]["variables"]]
             self.locals_handler(variables)
+
+        if("event" in event and event["event"] == "initialized" and self.executable):
+            self.initialized = True
+            self.send_dap({"type": "request", "command":"launch", "arguments":{"nodebug": "false", "program": self.executable}})
+            self.executable = None
+            
             
 
     def step(self):
@@ -95,7 +102,10 @@ class DebugBackend:
                 break
 
     def select_program(self, executable):
-        self.send_dap({"type": "request", "command":"launch", "arguments":{"nodebug": "false", "program": executable}})
+        if self.initialized:
+            self.send_dap({"type": "request", "command":"launch", "arguments":{"nodebug": "false", "program": executable}})
+        else:
+            self.executable = executable
             
     def run_program(self):
         self.send_dap({"type": "request", "command":"configurationDone"})
