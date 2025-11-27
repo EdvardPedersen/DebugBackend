@@ -37,6 +37,7 @@ class DebugBackend:
         self.reader.start()
         self.sequence = 1
         self.initialized = False
+        self.executable = None
         self.locals_handler = locals_handler
         self.running_line = select_running_line
         self.tid = 0
