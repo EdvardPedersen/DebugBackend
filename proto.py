@@ -21,7 +21,7 @@ class DebugBackend:
         possible_command_lines = [["gdb", "-i=dap"], ["xcrun", "lldb-dap"], ["lldb-dap"]]
         self.debugger = None
         for command in possible_command_lines:
-            print(f"Trying to run {" ".join(command)}")
+            print(f"Trying to run {' '.join(command)}")
             try:
                 self.debugger = subprocess.Popen(command, stdin = subprocess.PIPE, stdout = subprocess.PIPE, universal_newlines = True)
             except FileNotFoundError:
