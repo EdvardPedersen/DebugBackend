@@ -94,8 +94,13 @@ class DebugBackend:
                 break
 
     def select_program(self, executable):
-        self.send_dap({"type": "request", "command":"launch", "arguments":{"nodebug": "false", "program": executable}})
-        self.send_dap({"type": "request", "command":"configurationDone"})
+        if not self.use_lldb:
+            self.send_dap({"type": "request", "command":"launch", "arguments":{"nodebug": "false", "program": executable}})
+            self.send_dap({"type": "request", "command":"configurationDone"})
+        else:
+            self.send_dap({"type": "request", "command":"configurationDone"})
+            self.send_dap({"type": "request", "command":"launch", "arguments":{"nodebug": "false", "program": executable}})
+            
         
 
 class DebugFrontend:
