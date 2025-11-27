@@ -18,7 +18,7 @@ def DAP_Read(pipe, queue):
 class DebugBackend:
     def __init__(self, locals_handler, select_running_line):
         self.use_lldb = False
-        possible_command_lines = [["gdb", "-i=dap"], ["xcrun", "lldb-dap"], ["lldb-dap"]]
+        possible_command_lines = [["gdb", "-i=dap"], ["xcrun", "lldb-dap"], ["lldb-dap"], ["lldb-dap-20"]]
         self.debugger = None
         for command in possible_command_lines:
             print(f"Trying to run {' '.join(command)}")
@@ -80,6 +80,7 @@ class DebugBackend:
         if("type" in event and event["type"] == "response" and event["command"] == "variables" and event["success"]):
             variables = [(x["name"], x["value"]) for x in event["body"]["variables"]]
             self.locals_handler(variables)
+            
 
     def step(self):
         self.send_dap({"type": "request", "command":"next", "arguments":{"threadId": self.tid}} )
@@ -94,13 +95,10 @@ class DebugBackend:
                 break
 
     def select_program(self, executable):
-        if not self.use_lldb:
-            self.send_dap({"type": "request", "command":"launch", "arguments":{"nodebug": "false", "program": executable}})
-            self.send_dap({"type": "request", "command":"configurationDone"})
-        else:
-            self.send_dap({"type": "request", "command":"configurationDone"})
-            self.send_dap({"type": "request", "command":"launch", "arguments":{"nodebug": "false", "program": executable}})
+        self.send_dap({"type": "request", "command":"launch", "arguments":{"nodebug": "false", "program": executable}})
             
+    def run_program(self):
+        self.send_dap({"type": "request", "command":"configurationDone"})
         
 
 class DebugFrontend:
@@ -155,6 +153,7 @@ class DebugFrontend:
 
         if(self.opts.e):
             self.executable = self.opts.e
+            self.backend.select_program(self.executable)
         if(self.opts.s):
             self.source = self.opts.s
             self.show_source()
@@ -210,11 +209,11 @@ class DebugFrontend:
         if self.executable == None:
             print("Trying to run without an executable")
             return
-        self.backend.select_program(self.executable)
-        self.backend.get_dap_messages()
+        self.backend.run_program()
 
     def load_exe(self):
         self.executable = filedialog.askopenfilename()
+        self.backend.select_program(self.executable)
 
     def load_source(self):
         self.source = filedialog.askopenfilename()
