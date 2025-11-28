@@ -21,6 +21,7 @@ array_t *arr_create(int initial_elements, int element_size) {
     a->capacity = initial_elements;
     a->size = 0;
     a->element_size = element_size;
+    return a;
 }
 
 int arr_push(array_t *arr, void *element) {
